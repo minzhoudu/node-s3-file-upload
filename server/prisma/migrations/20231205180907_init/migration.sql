@@ -1,0 +1,9 @@
+-- CreateTable
+CREATE TABLE "Posts" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "imageName" TEXT NOT NULL,
+    "caption" TEXT NOT NULL,
+    "totalComments" INTEGER NOT NULL DEFAULT 0,
+    "totalLikes" INTEGER NOT NULL DEFAULT 0,
+    "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
