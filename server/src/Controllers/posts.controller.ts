@@ -69,6 +69,7 @@ export const getPosts = async (req: Request, res: Response) => {
             posts: modifiedPosts,
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             status: "failed",
             message: "Something went wrong while fetching posts",
