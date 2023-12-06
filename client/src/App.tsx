@@ -53,9 +53,9 @@ function App() {
             </form>
             {responseMessage !== "" && <h4>{responseMessage}</h4>}
 
-            {posts.length && <h2>Posts</h2>}
+            {posts.length !== 0 && <h2>Posts</h2>}
             <section style={{ display: "flex", flexDirection: "column", gap: "50px" }}>
-                {posts.length && posts.map((post) => <PostComponent post={post} key={post.id} />)}
+                {posts.length !== 0 && posts.map((post) => <PostComponent post={post} key={post.id} />)}
             </section>
         </>
     );
