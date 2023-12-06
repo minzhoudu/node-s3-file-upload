@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { prisma, s3 } from "../server";
 import { generateImageName, resizeImage } from "./../Services/images.service";
 
-export const newPost = async (req: Request, res: Response) => {
+export const createPost = async (req: Request, res: Response) => {
     try {
         const bucketName = process.env.BUCKET_NAME;
 
@@ -37,14 +37,16 @@ export const newPost = async (req: Request, res: Response) => {
         res.status(500).json({
             status: "failed",
             message: "Something went wrong while uploading image to S3 Bucket",
+            post: null,
         });
     }
 };
 
 export const getPosts = async (req: Request, res: Response) => {
     try {
-        const posts = await prisma.posts.findMany();
         const modifiedPosts = [];
+        const posts = await prisma.posts.findMany();
+
         const bucketName = process.env.BUCKET_NAME;
 
         for (const post of posts) {
@@ -52,12 +54,15 @@ export const getPosts = async (req: Request, res: Response) => {
                 Bucket: bucketName,
                 Key: post.imageName,
             });
+
             const imageUrl = await getSignedUrl(s3, getSignedUrlCommand, { expiresIn: 3600 });
+
             modifiedPosts.push({
                 ...post,
                 imageUrl,
             });
         }
+
         res.status(200).json({
             status: "success",
             message: "Successfully fetched posts",
@@ -67,6 +72,42 @@ export const getPosts = async (req: Request, res: Response) => {
         res.status(500).json({
             status: "failed",
             message: "Something went wrong while fetching posts",
+            posts: null,
+        });
+    }
+};
+
+export const deletePost = async (req: Request, res: Response) => {
+    try {
+        const bucketName = process.env.BUCKET_NAME;
+
+        const id = parseInt(req.params.id);
+        const post = await prisma.posts.findUnique({ where: { id } });
+
+        if (!post) {
+            return res.status(404).json({
+                status: "failed",
+                message: "Post not found",
+            });
+        }
+
+        const deleteObjectCommand = new DeleteObjectCommand({
+            Bucket: bucketName,
+            Key: post.imageName,
+        });
+
+        await s3.send(deleteObjectCommand);
+
+        await prisma.posts.delete({ where: { id } });
+
+        res.status(200).json({
+            status: "success",
+            message: "Successfully deleted this post",
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "failed",
+            message: "Something went wrong while deleting this post",
         });
     }
 };

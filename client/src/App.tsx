@@ -1,6 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
+import PostComponent from "./Components/Post";
 import { Post } from "./types/Post";
 
 function App() {
@@ -9,7 +10,7 @@ function App() {
     const [responseMessage, setResponseMessage] = useState<string>("");
     const [posts, setPosts] = useState<Post[]>([]);
 
-    useEffect(() => { 
+    useEffect(() => {
         const getPosts = async () => {
             const res = await axios.get("http://localhost:3000/api/posts");
             setPosts(res.data.posts);
@@ -34,7 +35,7 @@ function App() {
         setFile(null);
     };
 
-    const fileSelected = (event: ChangeEvent<HTMLInputElement>) => {
+    const onFileSelected = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files ? event.target.files[0] : null;
         setFile(file);
     };
@@ -44,7 +45,7 @@ function App() {
     return (
         <>
             <form onSubmit={onSubmitHandler}>
-                <input onChange={fileSelected} type="file" accept="image/*" />
+                <input onChange={onFileSelected} type="file" accept="image/*" />
                 <input value={caption} onChange={(e) => setCaption(e.target.value)} type="text" />
                 <button disabled={isDisabled} type="submit">
                     Submit
@@ -54,23 +55,7 @@ function App() {
 
             {posts.length && <h2>Posts</h2>}
             <section style={{ display: "flex", flexDirection: "column", gap: "50px" }}>
-                {posts.length &&
-                    posts.map((post) => (
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                            }}
-                        >
-                            <h3>{post.caption}</h3>
-                            <img src={post.imageUrl} alt={post.imageName} width={300} />
-                            <div style={{ display: "flex", flexDirection: "row", gap: "20px" }}>
-                                <p>Total Likes: {post.totalLikes}</p>
-                                <p>Total Comments: {post.totalComments}</p>
-                            </div>
-                        </div>
-                    ))}
+                {posts.length && posts.map((post) => <PostComponent post={post} key={post.id} />)}
             </section>
         </>
     );
